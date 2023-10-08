@@ -36,18 +36,11 @@ library(dplyr)
   #sigma <- read.csv("output/annualized_volatility.txt")
   sigma <- read.csv("output/volatility.txt")
   sigma <- as.numeric(sigma$x)
-
-  # Returns data
-  dates <- stock_data$Date[-1] # remove first date
-  returns_data <- data.frame(Date = as.Date(dates),
-                             Adjusted = as.vector(diff(log(stock_data$Adjusted))))
   
   S0 <- real_prices$Adjusted[1]
   
   N <- 20 # trading days from 2023-08-10 to 2023-09-08
   delta_t <- 1 # one day in a trading year
-  #sigma <- sd(returns_data$Adjusted, na.rm = TRUE)
-  K <- 130
   
   u <- exp(sigma*sqrt(delta_t))
   d <- 1/u
@@ -57,7 +50,6 @@ library(dplyr)
   q_tilde <- 1 - p_tilde
   
   cat("\tStarting Stock Price:\t", S0, "\n")
-  cat("\tStrike:\t\t\t", K, "\n")
   cat("\tVolatility:\t\t", sigma, "\n")
   cat("\tRisk-free rate:\t\t", r, "\n")
   cat("\tUp:\t\t\t", u, "\n")
@@ -139,23 +131,29 @@ library(dplyr)
   }
   
   call_dataframe <- call_dataframe[order(call_dataframe$Date), ]
-  write.csv(call_dataframe, file = "call.csv", row.names = FALSE)
+  write.csv(call_dataframe, file = "output/call.csv", row.names = FALSE)
   
   melted_call_dataframe <- melt(call_dataframe ,  id.vars = 'Date', variable.name = 'strike')
-  print(ggplot(melted_call_dataframe, aes(Date,value)) + 
-          geom_line(aes(colour = strike)) + 
-          theme_minimal() +
-          labs(title = "Call Options Price History"))
+  call_price_graph <- ggplot(melted_call_dataframe, aes(Date,value)) + 
+                              geom_line(aes(colour = strike)) + 
+                              theme_minimal() +
+                              labs(title = "Call Options Price History")
+  
+  print(call_price_graph)
+  ggsave("output/call_price_graph.png", plot = call_price_graph, width = 10, height = 6)
   
   put_dataframe <- put_dataframe[order(put_dataframe$Date), ]
   
-  write.csv(put_dataframe, file = "put.csv", row.names = FALSE)
+  write.csv(put_dataframe, file = "output/put.csv", row.names = FALSE)
   
   melted_put_dataframe <- melt(put_dataframe ,  id.vars = 'Date', variable.name = 'strike')
-  print(ggplot(melted_put_dataframe, aes(Date,value)) + 
-          geom_line(aes(colour = strike)) + 
-          theme_minimal() +
-          labs(title = "Put Options Price History"))
+  put_price_graph <- ggplot(melted_put_dataframe, aes(Date,value)) + 
+                            geom_line(aes(colour = strike)) + 
+                            theme_minimal() +
+                            labs(title = "Put Options Price History")
+  
+  print(put_price_graph)
+  ggsave("output/put_price_graph.png", plot = put_price_graph, width = 10, height = 6)
 
 #### 2. THE PRICE TREE ####
   
@@ -181,15 +179,18 @@ library(dplyr)
   price_tree$index <- 1:nrow(price_tree)
   price_tree <- gather(price_tree, key = "Column", value = "Value", -index)
   
-  print(graph <- ggplot(data = real_prices, aes(x = seq_along(Adjusted), y = Adjusted)) +
-                  geom_line() +
-                  geom_point(data = price_tree, aes(x = index, y = Value)) +
-                  labs(
-                    title = "GOOG Adjusted Prices (Aug 10, 2023 - Sep 9, 2023)",
-                    x = "Number of Rows",
-                    y = "Adjusted Price"
-                  ) +
-                  theme_minimal())
+  tree_graph <- ggplot(data = real_prices, aes(x = seq_along(Adjusted), y = Adjusted)) +
+                        geom_line() +
+                        geom_point(data = price_tree, aes(x = index, y = Value)) +
+                        labs(
+                          title = "GOOG Adjusted Prices (Aug 10, 2023 - Sep 9, 2023)",
+                          x = "Number of Rows",
+                          y = "Adjusted Price"
+                        ) +
+                        theme_minimal()
+  
+  print(tree_graph)
+  ggsave("output/tree_graph.png", plot = tree_graph, width = 10, height = 6)
 
   # compute the difference between the real value and the closest predicted value
   price_tree <- na.omit(price_tree)
@@ -206,13 +207,16 @@ library(dplyr)
   difference <- data.frame(Value = unlist(difference))
   
 
-  print(ggplot(difference, aes(x = seq_along(Value), y = Value)) +
-        geom_line() +
-        labs(
-          title = "Difference between actual stock value and closest predicted value",
-          x = "",
-          y = "Values") +
-        theme_minimal())
+  difference_graph <- ggplot(difference, aes(x = seq_along(Value), y = Value)) +
+                              geom_line() +
+                              labs(
+                                title = "Difference between actual stock value and closest predicted value",
+                                x = "",
+                                y = "Values") +
+                              theme_minimal()
+  
+  print(difference_graph)
+  ggsave("output/difference_graph.png", plot = difference_graph, width = 10, height = 6)
   
   min_difference <- min(difference$Value[2:length(difference$Value)])
   max_difference <- max(difference$Value[2:length(difference$Value)])
@@ -225,7 +229,7 @@ library(dplyr)
 
 #### 3. CALL AND PUT OPTION VALUES ####
   
-  call_value <- function(StartingValue, treeHeight) {
+  call_value <- function(StartingValue, treeHeight, Strike) {
 
     binomial_tree <- create_binomial_tree(StartingValue, treeHeight)
     call_tree <- matrix(NA, nrow=treeHeight+1, ncol = treeHeight+1)
@@ -233,7 +237,7 @@ library(dplyr)
     # values at the final node
     for(i in 1:(treeHeight+1)){
       # call: Max [ (Sn − K), 0 ]
-      call_tree[treeHeight+1, i] <- max(binomial_tree[treeHeight+1, i]-K, 0)
+      call_tree[treeHeight+1, i] <- max(binomial_tree[treeHeight+1, i] - Strike, 0)
     }
     
     # backwards induction
@@ -246,7 +250,7 @@ library(dplyr)
     return(call_tree[1,1])
   }
   
-  put_value <- function(StartingValue, treeHeight) {
+  put_value <- function(StartingValue, treeHeight, Strike) {
 
     binomial_tree <- create_binomial_tree(StartingValue, treeHeight)
     put_tree <- matrix(NA, nrow=treeHeight+1, ncol = treeHeight+1)
@@ -254,7 +258,7 @@ library(dplyr)
     # values at the final node
     for(i in 1:(treeHeight+1)){
       # put: Max [ (K − Sn), 0 ]
-      put_tree[treeHeight+1, i] <- max(K - binomial_tree[treeHeight+1, i], 0)
+      put_tree[treeHeight+1, i] <- max(Strike - binomial_tree[treeHeight+1, i], 0)
     }
     
     # backwards induction
@@ -267,40 +271,57 @@ library(dplyr)
     return(put_tree[1,1])
   }
   
-  # values predicted by the CRR model
-  predicted_call <- data.frame(CallValue = numeric(0))
-  predicted_put <- data.frame(PutValue = numeric(0))
-  
-  # fill the arrays
-  for(i in (N+1):1){
-    StartingValue <- real_prices$Adjusted[N+2-i]
-    treeHeight <- i
-    
-    predicted_call <- predicted_call %>% add_row(CallValue = call_value(StartingValue, treeHeight))
-    predicted_put <- predicted_put %>% add_row(PutValue = put_value(StartingValue, treeHeight))
-  }
+  # DO THE FOLLOWING FOR ALL VALUES BETWEEN 125 AND 135
 
-  print(ggplot(data = predicted_call, aes(x = seq_along(CallValue))) +
-          geom_line(aes(y = CallValue, color = "Estimate")) +
-          geom_line(aes(y = call_dataframe$'130', color = "Real")) +
-          labs(title = "Call Value",
-               x = "Date",
-               y = "Price",
-               color = "Metric") +
-          scale_color_manual(values = c("Estimate" = "blue",
-                                        "Real" = "orange")) +
-          theme_minimal())
+  columns_to_keep <- names(call_dataframe)[names(call_dataframe) >= '125' & names(call_dataframe) <= '135']
+  call_dataframe <- call_dataframe[, columns_to_keep]
+  put_dataframe <- put_dataframe[, columns_to_keep]
   
+  for(s in columns_to_keep){
+    # arrays to store the values predicted by the CRR model
+    predicted_call <- data.frame(CallValue = numeric(0))
+    predicted_put <- data.frame(PutValue = numeric(0))
+    
+    # fill the arrays
+    for(i in (N):1){
+      StartingValue <- real_prices$Adjusted[N+2-i]
+      treeHeight <- i
+      
+      predicted_call <- predicted_call %>% add_row(CallValue = call_value(StartingValue, treeHeight, as.numeric(s)))
+      predicted_put <- predicted_put %>% add_row(PutValue = put_value(StartingValue, treeHeight, as.numeric(s)))
+    }
+    
+    call_prediction <- ggplot(data = predicted_call, aes(x = seq_along(CallValue))) +
+                              geom_line(aes(y = CallValue, color = "Estimate")) +
+                              geom_line(aes(y = call_dataframe[[s]][-1], color = "Real")) +
+                              labs(title = paste("Call Value for Strike ", s),
+                                   x = "Date",
+                                   y = "Price",
+                                   color = "Metric") +
+                              scale_color_manual(values = c("Estimate" = "blue",
+                                                            "Real" = "orange")) +
+                              theme_minimal()
+    
+    print(call_prediction)
+    ggsave(paste("output/call_prediction_strike_", s, ".png"), plot = call_prediction, width = 10, height = 4)
+    
+    put_prediction <- ggplot(data = predicted_put, aes(x = seq_along(PutValue))) +
+                              geom_line(aes(y = PutValue, color = "Estimate")) +
+                              geom_line(aes(y = put_dataframe[[s]][-1], color = "Real")) +
+                              labs(title = paste("Put Value for Strike ", s),
+                                   x = "Date",
+                                   y = "Price",
+                                   color = "Metric") +
+                              scale_color_manual(values = c("Estimate" = "blue",
+                                                            "Real" = "orange")) +
+                              theme_minimal()
+    
+    print(put_prediction)
+    ggsave(paste("output/put_prediction_strike_", s, ".png"), plot = put_prediction, width = 10, height = 4)
+    
+  }
   
-  print(ggplot(data = predicted_put, aes(x = seq_along(PutValue))) +
-          geom_line(aes(y = PutValue, color = "Estimate")) +
-          geom_line(aes(y = put_dataframe$'130', color = "Real")) +
-          labs(title = "Put Value",
-               x = "Date",
-               y = "Price",
-               color = "Metric") +
-          scale_color_manual(values = c("Estimate" = "blue",
-                                        "Real" = "orange")) +
-          theme_minimal())
+
+
   
   
