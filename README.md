@@ -1,6 +1,6 @@
 # GOOG Options Study
 
-This is a term paper for the course "Metodi Probabilistici e Statistici per i Mercati Finanziari." The scripts in this repository are designed to work in RStudio, and they assume that the repository's folder is set as the working directory.
+This is a term paper for the course "Metodi Probabilistici e Statistici per i Mercati Finanziari." 
 To run the scripts, simply run main.R inside RStudio.
 
 ## Overview
@@ -34,12 +34,3 @@ Where:
 - K: Strike Price
 - $\sigma$: Volatility
 - r: Risk-Free Rate
-
-## Project Structure Description
-
-- **2023-09-08** a folder containing data for the options having their maturity date on September 8, 2023.
-- **other** a folder containing the script used to download options data, all options data downloaded until the date of the last commit and an implementation of the CRR model through a matrix.
-- **getData.R** a script to download stock data from Yahoo Finance and create *GOOG_data.csv*
-- **dataGraphs.R** a script to plot graphs based on *GOOG_data.csv*
-- **riskFreeRate.R** a script that retrieves the value of the 10 Years Treasury Constant Maturity Rate to create *bond_yield.csv* and *risk_free_rate.csv*. The first file has been found to be a better approximation of real data
-- **CRRmodel.R** a script that uses the files previously created to implement the CRR model to estimate the values of the Call and Put options data. It generates graphs based on the strike price 130.
