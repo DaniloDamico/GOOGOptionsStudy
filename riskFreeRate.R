@@ -17,7 +17,7 @@ write.csv(annualized_yield, file = "output/annualized_risk_free_rate.txt", row.n
 
 # Value of 10 Years Treasury Constant Maturity Rate
 treasury_ticker <- "DGS10"
-getSymbols(treasury_ticker, src = "FRED", from = "2022-08-08", to = "2023-08-08")
+getSymbols(treasury_ticker, src = "FRED", from = "2020-08-08", to = "2023-08-08")
 bond_yield <- get(treasury_ticker)
 bond_yield <- diff(bond_yield) / bond_yield[-length(bond_yield)]
 bond_yield <- na.omit(bond_yield)

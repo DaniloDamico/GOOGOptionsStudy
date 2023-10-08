@@ -7,7 +7,7 @@ library(ggplot2)
 
 # Define the parameters
 stock_price <- 130.21 # price on 2023-08-10
-risk_free_rate <- 0.002
+risk_free_rate <- 0.002420839 
 
 call_price <- read.csv("output/call.csv", header = TRUE)
 put_price <- read.csv("output/put.csv", header = TRUE)
