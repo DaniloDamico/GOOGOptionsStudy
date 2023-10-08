@@ -1,6 +1,7 @@
 # GOOG Options Study
 
 This is a term paper for the course "Metodi Probabilistici e Statistici per i Mercati Finanziari." The scripts in this repository are designed to work in RStudio, and they assume that the repository's folder is set as the working directory.
+To run the scripts, simply run main.R inside RStudio.
 
 ## Overview
 

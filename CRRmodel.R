@@ -16,7 +16,7 @@ library(dplyr)
 #### 0. RETRIEVE DATA AND INITIALIZE CONSTANTS ####
 
   # stock data until 2023-08-10
-  stock_data <- read.csv("GOOG_data.csv")
+  stock_data <- read.csv("output/GOOG_data.csv")
   stock_data <- data.frame(Date = as.Date(stock_data$Date),
                            Adjusted = as.vector(stock_data$Adjusted))
   
@@ -25,10 +25,18 @@ library(dplyr)
   real_prices <- Ad(get("GOOG"))
   real_prices <- data.frame(Adjusted = as.vector(real_prices))
   
-  # risk-free rate data
-  r_data <- read.csv("bond_yield.csv")
-  r_data <- data.frame(Rate = as.vector(r_data$DGS10))
+  # risk-free rate
+  #r <- read.csv("output/risk_free_rate.txt")
+  #r <- read.csv("output/annualized_risk_free_rate.txt")
+  r <- read.csv("output/10_year_risk_free_rate.txt")
+  r <- as.numeric(r$x)
   
+  
+  # volatility
+  #sigma <- read.csv("output/annualized_volatility.txt")
+  sigma <- read.csv("output/volatility.txt")
+  sigma <- as.numeric(sigma$x)
+
   # Returns data
   dates <- stock_data$Date[-1] # remove first date
   returns_data <- data.frame(Date = as.Date(dates),
@@ -38,8 +46,7 @@ library(dplyr)
   
   N <- 20 # trading days from 2023-08-10 to 2023-09-08
   delta_t <- 1 # one day in a trading year
-  sigma <- sd(returns_data$Adjusted, na.rm = TRUE)
-  r <- mean(r_data$Rate)
+  #sigma <- sd(returns_data$Adjusted, na.rm = TRUE)
   K <- 130
   
   u <- exp(sigma*sqrt(delta_t))

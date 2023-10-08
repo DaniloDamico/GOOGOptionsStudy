@@ -1,7 +1,7 @@
 library(quantmod)
 
 stock <- "GOOG"
-start_date <- as.Date("2021-01-01")
+start_date <- as.Date("2022-08-10")
 end_date <- as.Date("2023-08-10") # the last day is excluded
 
 # Download stock data
@@ -23,4 +23,4 @@ stock_data <- data.frame(Date = index(closing_prices),
                          Close = as.vector(closing_prices),
                          Volume = as.vector(volume))
 
-write.csv(stock_data, file = "GOOG_data.csv", row.names = FALSE)
+write.csv(stock_data, file = "output/GOOG_data.csv", row.names = FALSE)
