@@ -19,3 +19,7 @@ source("riskFreeRate.R")
 # Use the CRR model to estimate the value of Put and Call options, compare price data to the CRR binomial tree 
 cat("Executing CRRmodel.R\n")
 source("CRRmodel.R")
+
+# Compute the put call parity function over the options data retrieved
+cat("Executing putCallParity.R\n")
+source("putCallParity.R")
