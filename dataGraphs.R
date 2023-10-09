@@ -14,13 +14,13 @@ stock_data <- data.frame(Date = as.Date(stock_data$Date),
 
 # Stock Price
 stock_graph <- ggplot(data = stock_data, aes(x = Date)) +
-                geom_line(aes(y = Adjusted, color = "Adjusted")) +
-                labs(title = "Stock Price",
-                     x = "Date",
-                     y = "Price",
-                     color = "Metric") +
-                scale_color_manual(values = c("Adjusted" = "blue"))+
-                theme_minimal()
+                      geom_line(aes(y = Adjusted, color = "Adjusted")) +
+                      labs(title = "Stock Price",
+                           x = "Date",
+                           y = "Price",
+                           color = "Metric") +
+                      scale_color_manual(values = c("Adjusted" = "blue"))+
+                      theme_minimal()
 
 print(stock_graph)
 ggsave("output/stock.png", plot = stock_graph, width = 10, height = 4)
