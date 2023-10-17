@@ -26,14 +26,10 @@ library(dplyr)
   real_prices <- data.frame(Adjusted = as.vector(real_prices))
   
   # risk-free rate
-  #r <- read.csv("output/risk_free_rate.txt")
-  #r <- read.csv("output/annualized_risk_free_rate.txt")
   r <- read.csv("output/10_year_risk_free_rate.txt")
   r <- as.numeric(r$x)
   
-  
   # volatility
-  #sigma <- read.csv("output/annualized_volatility.txt")
   sigma <- read.csv("output/volatility.txt")
   sigma <- as.numeric(sigma$x)
   

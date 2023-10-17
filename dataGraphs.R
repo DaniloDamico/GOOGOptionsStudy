@@ -55,9 +55,3 @@ ggsave("output/returns.png", plot = returns_graph, width = 10, height = 4)
 volatility <- sd(returns_data$Adjusted, na.rm = TRUE)
 cat("\tVolatility:\t\t", volatility, "\n")
 write.csv(volatility, file = "output/volatility.txt", row.names = FALSE)
-
-annualized_volatility <- sqrt(252) * volatility
-cat("\tAnnualized Volatility:\t", annualized_volatility, "\n")
-write.csv(annualized_volatility, file = "output/annualized_volatility.txt", row.names = FALSE)
-
-
